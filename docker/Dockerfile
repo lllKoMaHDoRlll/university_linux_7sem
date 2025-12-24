@@ -50,6 +50,7 @@ COPY --from=test-build /root/.local /root/.local
 
 COPY . .
 
+ENV PYTHONPATH /app
 ENV PATH=/root/.local/bin:$PATH
 
 CMD ["pytest", "tests/", "-v"]
