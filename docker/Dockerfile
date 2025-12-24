@@ -27,9 +27,9 @@ ENV PATH=/home/appuser/.local/bin:$PATH
 
 USER appuser
 
-EXPOSE 8000
+EXPOSE 8069
 
-CMD ["uvicorn", "src.main:app", "--host", "0.0.0.0", "--port", "8000"]
+CMD ["uvicorn", "src.main:app", "--host", "0.0.0.0", "--port", "8069"]
 
 # Stage 3: test-build
 FROM build as test-build
