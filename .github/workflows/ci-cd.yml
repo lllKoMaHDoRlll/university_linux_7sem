@@ -63,7 +63,7 @@ jobs:
 
     - name: Build prod image
       working-directory: ./docker
-      run : podman build -t fastapi-app-orl -- target runtime -f Dockerfile .
+      run: podman build -t fastapi-app-orl --target runtime -f Dockerfile .
 
     - name: Stop old container
       run: |
