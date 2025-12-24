@@ -73,6 +73,7 @@ jobs:
     - name: Start new container
       run: |
         podman run -d \
+          --replace \
           --name fastapi-app-orl \
           --network host \
           -e DATABASE_URL=${{ secrets.DATABASE_URL }} \
