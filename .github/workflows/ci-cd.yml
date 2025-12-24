@@ -63,7 +63,7 @@ jobs:
 
     - name: Build prod image
       working-directory: ./docker
-      run: podman build -t fastapi-app-orl --target runtime -f Dockerfile .
+      run: podman build -t fastapi-app-orl:latest --target runtime --quiet -f Dockerfile .
 
     - name: Stop old container
       run: |
@@ -77,7 +77,7 @@ jobs:
           --network host \
           -e DATABASE_URL=${{ secrets.DATABASE_URL }} \
           --restart unless-stopped \
-          localhost/fastapi-app-orl
+          localhost/fastapi-app-orl:latest
 
     - name: Cleanup old images
       run: podman image prune -af --filter "until=24h"
