@@ -5,6 +5,7 @@ WORKDIR /app
 
 COPY pyproject.toml ./
 
+RUN pip install --no-cache-dir --upgrade pip setuptools
 RUN pip install --no-cache-dir --user -e .
 
 RUN apt-get update && apt-get install -y --no-install-recommends \
