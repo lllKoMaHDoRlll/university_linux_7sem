@@ -44,3 +44,40 @@ jobs:
     - name: Run tests
       working-directory: ./docker
       run: docker compose run --rm test
+
+  deploy:
+    needs: test
+    runs-on: self-hosted
+    if : github.ref == 'refs/heads/master'
+
+    steps:
+    - name: Checkout
+      uses: actions/checkout@v3
+
+    - name: Create .env file
+      working-directory: ./docker
+      run: |
+        cat > .env << EOF
+        DATABASE_URL=${{ secrets.DATABASE_URL }}
+        EOF
+
+    - name: Build prod image
+      working-directory: ./docker
+      run : podman build -t fastapi-app-orl -- target runtime -f Dockerfile .
+
+    - name: Stop old container
+      run: |
+        podman stop fastapi-app-orl || true
+        podman rm fastapi-app-orl || true
+
+    - name: Start new container
+      run: |
+        podman run -d \
+          --name fastapi-app-orl \
+          --network host \
+          -e DATABASE_URL=${{ secrets.DATABASE_URL }} \
+          --restart unless-stopped \
+          localhost/fastapi-app-orl
+
+    - name: Cleanup old images
+      run: podman image prune -af --filter "until=24h"
