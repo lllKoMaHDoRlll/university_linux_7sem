@@ -31,7 +31,7 @@ jobs:
       working-directory: ./docker
       run: |
         cat > .env << EOF
-        DATABASE_URL=postgresql://testuser:testpass@postgres:5432/testdb
+        DATABASE_URL=postgresql+asyncpg://testuser:testpass@postgres:5432/testdb
         EOF
 
     - name: Set up Docker Buildx
