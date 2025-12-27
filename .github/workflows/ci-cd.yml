@@ -15,18 +15,18 @@ jobs:
   build:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
-
       - name: Login to GHCR
         run: echo "${{ secrets.GITHUB_TOKEN }}" | docker login ghcr.io -u "${{ github.actor }}" --password-stdin
 
       - name: Build & push runtime image
+        working-directory: ./docker
         run: |
           set -e
           docker build --target runtime -t "${IMAGE}:${{ github.sha }}" .
           docker push "${IMAGE}:${{ github.sha }}"
 
       - name: Build & push test image
+        working-directory: ./docker
         run: |
           set -e
           docker build --target test -t "${IMAGE}:test-${{ github.sha }}" .
@@ -53,9 +53,11 @@ jobs:
 
     steps:
     - name: Login to GHCR
+      working-directory: ./docker
       run: echo "${{ secrets.GITHUB_TOKEN }}" | docker login ghcr.io -u "${{ github.actor }}" --password-stdin
 
     - name: Pull TEST image
+      working-directory: ./docker
       run: docker pull "${IMAGE}:test-${{ github.sha }}"
 
     - name: Run tests
@@ -69,6 +71,7 @@ jobs:
 
     steps:
     - name: Login to GHCR (podman)
+      working-directory: ./docker
       run: echo "${{ secrets.GITHUB_TOKEN }}" | podman login ghcr.io -u "${{ github.actor }}" --password-stdin
 
     - name: Create .env file
@@ -80,9 +83,11 @@ jobs:
         EOF
 
     - name: Pull runtime image
+      working-directory: ./docker
       run: docker pull "${IMAGE}:${{ github.sha }}"
 
     - name: Start new container
+      working-directory: ./docker
       run: |
         podman run -d \
           --replace \
