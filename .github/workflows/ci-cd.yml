@@ -26,7 +26,6 @@ jobs:
           docker push "${IMAGE}:${{ github.sha }}"
 
       - name: Build & push test image
-        working-directory: ./docker
         run: |
           set -e
           docker build --target test -t "${IMAGE}:test-${{ github.sha }}" .
@@ -53,15 +52,12 @@ jobs:
 
     steps:
     - name: Login to GHCR
-      working-directory: ./docker
       run: echo "${{ secrets.GITHUB_TOKEN }}" | docker login ghcr.io -u "${{ github.actor }}" --password-stdin
 
     - name: Pull TEST image
-      working-directory: ./docker
       run: docker pull "${IMAGE}:test-${{ github.sha }}"
 
     - name: Run tests
-      working-directory: ./docker
       run: docker compose run --rm test -e DATABASE_URL="postgresql+psycopg://testuser:testpass@localhost:5432/testdb" "${IMAGE}:test-${{ github.sha }}"
 
   deploy:
@@ -83,11 +79,9 @@ jobs:
         EOF
 
     - name: Pull runtime image
-      working-directory: ./docker
       run: docker pull "${IMAGE}:${{ github.sha }}"
 
     - name: Start new container
-      working-directory: ./docker
       run: |
         podman run -d \
           --replace \
