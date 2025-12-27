@@ -19,16 +19,15 @@ jobs:
         run: echo "${{ secrets.GITHUB_TOKEN }}" | docker login ghcr.io -u "${{ github.actor }}" --password-stdin
 
       - name: Build & push runtime image
-        working-directory: docker
         run: |
           set -e
-          docker build --target runtime -t "${IMAGE}:${{ github.sha }}" .
+          docker build --target runtime -t "${IMAGE}:${{ github.sha }}" ./docker/Dockerfile
           docker push "${IMAGE}:${{ github.sha }}"
 
       - name: Build & push test image
         run: |
           set -e
-          docker build --target test -t "${IMAGE}:test-${{ github.sha }}" .
+          docker build --target test -t "${IMAGE}:test-${{ github.sha }}" ./docker/Dockerfile
           docker push "${IMAGE}:test-${{ github.sha }}"
 
   test:
