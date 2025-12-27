@@ -92,7 +92,7 @@ jobs:
         EOF
 
     - name: Pull runtime image
-      run: docker pull "${IMAGE}:${{ github.sha }}"
+      run: podman pull "${IMAGE}:${{ github.sha }}"
 
     - name: Start new container
       run: |
