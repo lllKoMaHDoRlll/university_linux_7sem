@@ -66,8 +66,9 @@ jobs:
     - name: Run tests
       working-directory: ./docker
       run: |
-        set -e
-        docker compose run -e DATABASE_URL="postgresql+psycopg://testuser:testpass@localhost:5432/testdb" --rm test "${IMAGE}:test-${{ github.sha }}"
+        docker run --rm --network host \
+            -e DATABASE_URL="postgresql+psycopg://testuser:testpass@localhost:5432/testdb" \
+            "${IMAGE}:test-${{ github.sha }}"
 
   deploy:
     needs: test
@@ -95,10 +96,10 @@ jobs:
 
     - name: Start new container
       run: |
-        podman run -d \
-          --replace \
-          --name fastapi-app-orl \
-          --network host \
-          -e DATABASE_URL=${{ secrets.DATABASE_URL }} \
-          --restart unless-stopped \
-          "${IMAGE}:${{ github.sha }}"
+
+          podman rm -f usersapp 2>/dev/null || true
+
+          # контейнер слушает 8008, на хосте открываем порт из секрета
+          podman run -d --name usersapp --network host \
+            -e DATABASE_URL="postgresql+psycopg://kubsu:kubsu@127.0.0.1:5432/kubsu" \
+            "${IMAGE}:${{ github.sha }}"
