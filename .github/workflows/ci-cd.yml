@@ -60,9 +60,11 @@ jobs:
       run: echo "${{ secrets.GITHUB_TOKEN }}" | docker login ghcr.io -u "${{ github.actor }}" --password-stdin
 
     - name: Pull TEST image
+      working-directory: ./docker
       run: docker pull "${IMAGE}:test-${{ github.sha }}"
 
     - name: Run tests
+      working-directory: ./docker
       run: docker compose run --rm test -e DATABASE_URL="postgresql+psycopg://testuser:testpass@localhost:5432/testdb" "${IMAGE}:test-${{ github.sha }}"
 
   deploy:
