@@ -14,7 +14,7 @@ services:
     network_mode: host
 
   test:
-    build:
+    image:
       context: .
       dockerfile: Dockerfile
       target: test
