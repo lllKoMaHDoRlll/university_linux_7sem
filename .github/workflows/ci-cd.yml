@@ -4,9 +4,37 @@ on:
   push:
     branches: [ master ]
 
+permissions:
+  contents: read
+  packages: write
+
+env:
+  IMAGE: ghcr.io/${{ github.repository_owner }}/univ_linux
+
 jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Login to GHCR
+        run: echo "${{ secrets.GITHUB_TOKEN }}" | docker login ghcr.io -u "${{ github.actor }}" --password-stdin
+
+      - name: Build & push runtime image
+        run: |
+          set -e
+          docker build --target runtime -t "${IMAGE}:${{ github.sha }}" .
+          docker push "${IMAGE}:${{ github.sha }}"
+
+      - name: Build & push test image
+        run: |
+          set -e
+          docker build --target test -t "${IMAGE}:test-${{ github.sha }}" .
+          docker push "${IMAGE}:test-${{ github.sha }}"
+
   test:
     runs-on: ubuntu-latest
+    needs: build
 
     services:
       postgres:
@@ -24,26 +52,15 @@ jobs:
           --health-retries 5
 
     steps:
-    - name: Checkout
-      uses: actions/checkout@v3
+    - name: Login to GHCR
+      run: echo "${{ secrets.GITHUB_TOKEN }}" | docker login ghcr.io -u "${{ github.actor }}" --password-stdin
 
-    - name: Create .env file for testing
-      working-directory: ./docker
-      run: |
-        cat > .env << EOF
-        DATABASE_URL=postgresql+psycopg://testuser:testpass@localhost:5432/testdb
-        EOF
-
-    - name: Set up Docker Buildx
-      uses: docker/setup-buildx-action@v2
-
-    - name: Build test image
-      working-directory: ./docker
-      run: docker compose build test
+    - name: Pull TEST image
+      run: docker pull "${IMAGE}:test-${{ github.sha }}"
 
     - name: Run tests
       working-directory: ./docker
-      run: docker compose run --rm test
+      run: docker compose run --rm test -e DATABASE_URL="postgresql+psycopg://testuser:testpass@localhost:5432/testdb" "${IMAGE}:test-${{ github.sha }}"
 
   deploy:
     needs: test
@@ -51,8 +68,8 @@ jobs:
     if : github.ref == 'refs/heads/master'
 
     steps:
-    - name: Checkout
-      uses: actions/checkout@v3
+    - name: Login to GHCR (podman)
+      run: echo "${{ secrets.GITHUB_TOKEN }}" | podman login ghcr.io -u "${{ github.actor }}" --password-stdin
 
     - name: Create .env file
       working-directory: ./docker
@@ -62,14 +79,8 @@ jobs:
         APP_PORT=8069
         EOF
 
-    - name: Build prod image
-      working-directory: ./docker
-      run: podman build -t fastapi-app-orl:latest --target runtime --quiet -f Dockerfile .
-
-    - name: Stop old container
-      run: |
-        podman stop fastapi-app-orl || true
-        podman rm fastapi-app-orl || true
+    - name: Pull runtime image
+      run: docker pull "${IMAGE}:${{ github.sha }}"
 
     - name: Start new container
       run: |
@@ -79,7 +90,4 @@ jobs:
           --network host \
           -e DATABASE_URL=${{ secrets.DATABASE_URL }} \
           --restart unless-stopped \
-          localhost/fastapi-app-orl:latest
-
-    - name: Cleanup old images
-      run: podman image prune -af --filter "until=24h"
+          "${IMAGE}:${{ github.sha }}"

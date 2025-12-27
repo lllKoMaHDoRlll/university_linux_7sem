@@ -8,9 +8,7 @@ COPY pyproject.toml ./
 RUN pip install --no-cache-dir --upgrade pip setuptools
 RUN pip install --no-cache-dir --user -e .
 
-RUN apt-get update && apt-get install -y --no-install-recommends \
-    libpq5 \
-    && rm -rf /var/lib/apt/lists/*
+RUN apt-get update && rm -rf /var/lib/apt/lists/*
 
 # Stage 2: runtime
 FROM python:3.10.2-slim as runtime
@@ -39,9 +37,7 @@ RUN pip install --no-cache-dir --user -e ".[test]"
 # Stage 4: test
 FROM python:3.10.2-slim as test
 
-RUN apt-get update && apt-get install -y --no-install-recommends \
-    libpq5 \
-    && rm -rf /var/lib/apt/lists/*
+RUN apt-get update && rm -rf /var/lib/apt/lists/*
 
 WORKDIR /app
 
