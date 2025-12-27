@@ -67,7 +67,7 @@ jobs:
       working-directory: ./docker
       run: |
         set -e
-        docker compose run --rm test -e DATABASE_URL="postgresql+psycopg://testuser:testpass@localhost:5432/testdb" "${IMAGE}:test-${{ github.sha }}"
+        docker compose run -e DATABASE_URL="postgresql+psycopg://testuser:testpass@localhost:5432/testdb" --rm test "${IMAGE}:test-${{ github.sha }}"
 
   deploy:
     needs: test
