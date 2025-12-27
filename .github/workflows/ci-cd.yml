@@ -21,14 +21,12 @@ jobs:
       - name: Build & push runtime image
         working-directory: ./docker
         run: |
-          set -e
           docker build --target runtime -t "${IMAGE}:${{ github.sha }}" .
           docker push "${IMAGE}:${{ github.sha }}"
 
       - name: Build & push test image
         working-directory: ./docker
         run: |
-          set -e
           docker build --target test -t "${IMAGE}:test-${{ github.sha }}" .
           docker push "${IMAGE}:test-${{ github.sha }}"
 
